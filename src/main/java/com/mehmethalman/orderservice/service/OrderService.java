@@ -4,6 +4,7 @@ import com.mehmethalman.orderservice.client.ProductCatalogClient;
 import com.mehmethalman.orderservice.dto.CreateOrderRequest;
 import com.mehmethalman.orderservice.dto.ProductDto;
 import com.mehmethalman.orderservice.entities.OrderEntity;
+import com.mehmethalman.orderservice.exception.ProductNotFoundException;
 import com.mehmethalman.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.protocol.types.Field;
@@ -25,7 +26,7 @@ public class OrderService {
     public OrderEntity createOrder(CreateOrderRequest request){
         ProductDto product = productCatalogClient.getProductById(request.getProductId());
         if (product == null) {
-            throw new RuntimeException("Sipariş iptal edildi: Sistemde " + request.getProductId() + " id'sine sahip bir ürün bulunamadı!");
+            throw new ProductNotFoundException(request.getProductId());
         }
         BigDecimal totalPrice = product.getPrice().multiply(BigDecimal.valueOf(request.getQuantity()));
         OrderEntity orderEntity = new OrderEntity();
@@ -39,6 +40,7 @@ public class OrderService {
         OrderEntity savedOrder = orderRepository.save(orderEntity);
         String mesaj = "Yeni sipariş oluşturuldu Sipariş id: " + savedOrder.getOrderId() +
                 " | Ürün id: " + savedOrder.getProductId() +
+                " | Ürün Adedi: " + savedOrder.getQuantity() +
                 " | Toplam Tutar: " + savedOrder.getTotalPrice() + " TL";
 
         kafkaTemplate.send("order-events", mesaj);
