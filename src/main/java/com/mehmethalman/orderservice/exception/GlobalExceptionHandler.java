@@ -26,4 +26,9 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
     }
+    @ExceptionHandler(ProductServiceUnavailableException.class)
+    public ResponseEntity<String> handleProductServiceUnavailable(ProductServiceUnavailableException ex) {
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
+    }
 }
